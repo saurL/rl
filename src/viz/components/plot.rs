@@ -6,6 +6,7 @@ use crossterm::event::{Event, KeyCode};
 use ratatui::{
     prelude::*,
     style::Stylize,
+    symbols::Marker,
     widgets::{Block, BorderType, Padding, Tabs, WidgetRef},
 };
 

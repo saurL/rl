@@ -54,6 +54,19 @@ pub trait DiscreteActionSpace: Environment {
     fn actions(&self) -> Vec<Self::Action>;
 }
 
+/// An [Environment] with a continuous action space
+pub trait ContinuousActionSpace: Environment {
+    /// Get the dimensionality of the continuous action space
+    fn action_dim(&self) -> usize;
+
+    /// Get the action bounds (low, high) for each dimension
+    ///
+    /// Returns `None` if actions are unbounded, or `Some((low, high))` where
+    /// `low` and `high` are vectors of length `action_dim` specifying the
+    /// lower and upper bounds for each action dimension.
+    fn action_bounds(&self) -> Option<(Vec<f32>, Vec<f32>)>;
+}
+
 /// An [Environment] with a discrete state space
 pub trait DiscreteStateSpace: Environment {
     /// Get all possible states in the environment

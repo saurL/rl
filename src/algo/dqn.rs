@@ -12,7 +12,7 @@ use crate::{
     env::Environment,
     exploration::{Choice, EpsilonGreedy},
     memory::{Exp, Memory, PrioritizedReplayMemory, ReplayMemory},
-    traits::ToTensor,
+    traits::{BoolToTensor, ToTensor},
 };
 
 /// A burn module used with a Deep Q network agent
@@ -232,7 +232,7 @@ where
             .iter()
             .map(Option::is_some)
             .collect::<Vec<_>>()
-            .to_tensor(self.device)
+            .to_bool_tensor(self.device)
             .unsqueeze_dim(1);
 
         // Tensor conversions
@@ -291,7 +291,7 @@ where
             .iter()
             .map(Option::is_some)
             .collect::<Vec<_>>()
-            .to_tensor(self.device)
+            .to_bool_tensor(self.device)
             .unsqueeze_dim(1);
 
         // Tensor conversions
@@ -320,10 +320,12 @@ where
         let discounted_expected_return = rewards + (expected_q_values * self.gamma);
 
         // Compute temporal difference errors
-        let tde: Tensor<B, 1> = (discounted_expected_return - q_values).squeeze(1);
+        let tde: Tensor<B, 1> = (discounted_expected_return - q_values).squeeze();
 
         // Update priorities of sampled experiences
-        let td_errors = tde.to_data().value;
+        let data = tde.to_data();
+        let td_errors: Vec<f32> = data.iter::<f32>().collect();
+
         memory.update_priorities(&indices, &td_errors);
 
         // Apply importance sampling weights from prioritized memory replay and compute mean squared weighted TD error
