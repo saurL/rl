@@ -80,6 +80,10 @@ impl Environment for WindyGridworld {
             .choose(&mut rand::thread_rng())
             .expect("Iterator is not empty")
     }
+
+    fn current_state(&self) -> Self::State {
+        self.pos
+    }
 }
 
 impl DiscreteActionSpace for WindyGridworld {

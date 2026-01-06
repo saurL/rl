@@ -117,6 +117,10 @@ impl Environment for CarRental {
 
         self.get_state()
     }
+
+    fn current_state(&self) -> Self::State {
+        self.get_state()
+    }
 }
 
 impl DiscreteStateSpace for CarRental {

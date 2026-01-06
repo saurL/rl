@@ -1,21 +1,22 @@
 // NEW API DEMO: Using library's generic MLP instead of custom models
-// Users no longer need to implement SACActorModel and SACCriticModel traits
+// Users no longer need to implement TD3ActorModel and TD3CriticModel traits
 // Just configure the network architecture and the library handles the rest!
 
-use burn::backend::{wgpu::WgpuDevice, Autodiff, Wgpu};
+use burn::backend::{Autodiff, NdArray};
 use once_cell::sync::Lazy;
 #[cfg(feature = "viz")]
 use rl::viz;
 use rl::{
-    algo::sac::{MLPActor, MLPCritic, SACAgent, SACAgentConfig},
+    algo::td3::{MLPCritic, TD3Agent, TD3AgentConfig},
     env::Environment,
     gym::Pendulum,
+    nn::MLPConfig,
     traits::TrainableAgent,
 };
 
-type SACBackend = Autodiff<Wgpu>;
+type TD3Backend = Autodiff<NdArray>;
 
-static DEVICE: Lazy<WgpuDevice> = Lazy::new(WgpuDevice::default);
+static DEVICE: Lazy<<NdArray as burn::prelude::Backend>::Device> = Lazy::new(Default::default);
 
 const NUM_EPISODES: u16 = 200;
 const MAX_STEPS_PER_EPISODE: usize = 200;
@@ -29,32 +30,34 @@ fn main() {
     let action_dim = 1; // torque
 
     // NEW API: Just configure the architecture - no custom model implementation needed!
-    // Actor: state (3) → shared trunk (64, 64) → mean head (1) + log_std head (1)
-    // Hidden layers use ReLU, output heads are linear
-    let actor = MLPActor::new(state_dim, action_dim, vec![64, 64], &*DEVICE);
+    // Actor: state (3) → hidden (256, 256) → action (1) with tanh
+    // Hidden layers use ReLU, output layer uses tanh (bounded actions [-1, 1])
+    let actor = MLPConfig::new(state_dim, vec![256, 256], action_dim)
+        .init::<TD3Backend>(&*DEVICE);
 
     // Critic 1 & 2: concatenate [state (3), action (1)] → hidden (256, 256) → Q-value (1)
     // Hidden layers use ReLU, output layer is linear
     let critic1 = MLPCritic::new(state_dim, action_dim, vec![256, 256], &*DEVICE);
     let critic2 = MLPCritic::new(state_dim, action_dim, vec![256, 256], &*DEVICE);
 
-    // Create SAC agent with configuration
-    let config = SACAgentConfig {
+    // Create TD3 agent with configuration
+    let config = TD3AgentConfig {
         memory_capacity: 50_000,
         memory_batch_size: 128,
         gamma: 0.99,
         tau: 0.005,
         lr_actor: 3e-4,
         lr_critic: 3e-4,
-        lr_alpha: 3e-4,
-        auto_alpha: true,
-        initial_alpha: 0.5,
+        policy_delay: 2,
+        target_policy_noise: 0.2,
+        target_noise_clip: 0.5,
+        exploration_noise: 0.1,
         learning_starts: 1000,
-        ..Default::default()
+        gradient_clip: Some(1.0),
     };
 
-    let mut agent: SACAgent<SACBackend, _, _, Pendulum, 2> =
-        SACAgent::new(actor, critic1, critic2, &env, config, &*DEVICE);
+    let mut agent: TD3Agent<TD3Backend, _, _, Pendulum, 2> =
+        TD3Agent::new(actor, critic1, critic2, &env, config, &*DEVICE);
 
     #[cfg(feature = "viz")]
     let viz_keys = vec!["reward", "steps"];

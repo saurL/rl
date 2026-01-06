@@ -160,23 +160,33 @@ impl Plots {
 
     pub fn update(&mut self, update: Update) {
         let Update { episode, data } = update;
+
         for (i, metric) in data.iter().enumerate() {
-            self.plots[i].update((episode as f64, *metric));
+            if i < self.plots.len() {
+                self.plots[i].update((episode as f64, *metric));
+            }
         }
     }
 }
 
 impl WidgetRef for Plots {
     fn render_ref(&self, area: Rect, buf: &mut Buffer) {
+        // Split area: tabs at top, plot below
+        let [tabs_area, plot_area] = Layout::vertical([
+            Constraint::Length(3),  // Height for tabs
+            Constraint::Fill(1),    // Rest for plot
+        ])
+        .areas(area);
+
         Tabs::new(self.plot_names.iter().copied())
-            .block(Block::default().padding(Padding::uniform(2)))
+            .block(Block::default().padding(Padding::uniform(1)))
             .white()
             .highlight_style(Style::default().light_green())
             .select(self.selected)
-            .render(area, buf);
+            .render(tabs_area, buf);
 
         if !self.plots.is_empty() {
-            self.plots[self.selected].render(area, buf);
+            self.plots[self.selected].render(plot_area, buf);
         }
     }
 }

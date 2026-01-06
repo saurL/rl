@@ -83,6 +83,9 @@ impl<const K: usize> Environment for KArmedBandit<K> {
     fn random_action(&self) -> Self::Action {
         rand::thread_rng().gen_range(0..K)
     }
+    fn current_state(&self) -> Self::State {
+        ()
+    }
 }
 
 impl<const K: usize> DiscreteActionSpace for KArmedBandit<K> {

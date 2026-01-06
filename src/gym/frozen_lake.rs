@@ -128,4 +128,8 @@ impl Environment for FrozenLake {
         self.pos = 0;
         self.pos
     }
+
+    fn current_state(&self) -> Self::State {
+        self.pos
+    }
 }

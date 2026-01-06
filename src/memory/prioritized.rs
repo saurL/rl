@@ -59,6 +59,11 @@ impl<E: Environment> PrioritizedReplayMemory<E> {
         }
     }
 
+    /// Get the current number of experiences stored
+    pub fn len(&self) -> usize {
+        self.memory.len()
+    }
+
     /// Add a new experience to the memory
     pub fn push(&mut self, exp: Exp<E>) {
         let ix = self.memory.push(exp);

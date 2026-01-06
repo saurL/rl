@@ -14,11 +14,58 @@ This project also aims to provide a clean platform for experimentation with new 
 Currently, **rl** is in its early stages. Contributors are more than welcome!
 
 ## Features
- - High-performance production-ready implementations of all SoTA RL algorithms
- - Detailed logging and training visualization TUI (see image below)
- - Maximum extensibility for creating and testing new experimental algorithms
- - Gym environments
- - A comfortable learning experience for those new to RL
- - General RL peripherals and utility functions
+ - **Simple API**: No need to implement custom model classes - just configure network architecture
+ - **High-performance**: Production-ready implementations of SoTA RL algorithms (A2C, DQN, PPO, SAC, TD3)
+ - **Visualization**: Real-time training visualization TUI (see image below)
+ - **Extensible**: Maximum flexibility for creating and testing new experimental algorithms
+ - **Gym environments**: Built-in testing environments
+ - **Beginner-friendly**: Comfortable learning experience for those new to RL
+ - **Utilities**: General RL peripherals and utility functions
 
 ![TUI example](https://github.com/benbaarber/rl/assets/6320364/d0c545bb-a5f4-4487-8e33-1a02a3fb4577)
+
+## Quick Start
+
+Training a DQN agent on CartPole is as simple as:
+
+```rust
+use burn::backend::{wgpu::WgpuDevice, Autodiff, Wgpu};
+use rl::{
+    algo::dqn::{DQNAgent, DQNAgentConfig},
+    gym::CartPole,
+    nn::MLPConfig,
+};
+
+type Backend = Autodiff<Wgpu>;
+
+fn main() {
+    let device = WgpuDevice::default();
+    let mut env = CartPole::new(gym_rs::utils::renderer::RenderMode::Human);
+
+    // Just configure the network architecture - no custom models needed!
+    let model = MLPConfig::new(4, vec![64, 128], 2).init::<Backend>(&device);
+
+    let config = DQNAgentConfig::default();
+    let mut agent = DQNAgent::new(model, config, &device);
+
+    // Train for 500 episodes
+    for episode in 0..500 {
+        agent.go(&mut env);
+
+        if (episode + 1) % 50 == 0 {
+            println!("Episode {}/500", episode + 1);
+        }
+    }
+
+    println!("Training complete!");
+}
+```
+
+That's it! No need to implement custom model classes or write boilerplate code. The library provides sensible defaults while remaining fully customizable.
+
+### More Examples
+
+- **A2C** (Actor-Critic): See [`examples/a2c_cartpole`](examples/a2c_cartpole/main.rs)
+- **PPO** (Proximal Policy Optimization): See [`examples/ppo_cartpole`](examples/ppo_cartpole/main.rs)
+- **SAC** (Soft Actor-Critic): See [`examples/sac_pendulum`](examples/sac_pendulum/main.rs)
+- **TD3** (Twin Delayed DDPG): See [`examples/td3_pendulum`](examples/td3_pendulum/main.rs)

@@ -44,6 +44,8 @@ pub trait Environment {
     fn is_active(&self) -> bool {
         true
     }
+    // get the current state without modifying the environment
+    fn current_state(&self) -> Self::State;
 }
 
 /// An [Environment] with a discrete action space
@@ -160,6 +162,10 @@ pub(crate) mod tests {
         }
 
         fn random_action(&self) -> Self::Action {
+            0
+        }
+
+        fn current_state(&self) -> Self::State {
             0
         }
     }

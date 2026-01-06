@@ -1,6 +1,6 @@
 use burn::prelude::*;
 use gym_rs::core::{ActionReward, Env};
-use gym_rs::envs::classical_control::cartpole::{CartPoleEnv, CartPoleObservation};
+use gym_rs::envs::classical_control::mountain_car::{MountainCarEnv, MountainCarObservation};
 use gym_rs::utils::renderer::RenderMode;
 use rand::seq::IteratorRandom;
 use rand::thread_rng;
@@ -9,29 +9,31 @@ use strum::{EnumIter, FromRepr, IntoEnumIterator, VariantArray};
 use crate::env::{DiscreteActionSpace, Environment, Report};
 use crate::traits::ToTensor;
 
-fn obs2arr(observation: CartPoleObservation) -> [f32; 4] {
+fn obs2arr(observation: MountainCarObservation) -> [f32; 2] {
     Vec::from(observation)
         .into_iter()
         .map(|x| x as f32)
         .collect::<Vec<_>>()
         .try_into()
-        .expect("vec is length 4")
+        .expect("vec is length 2")
 }
 
-/// Actions for the [`CartPole`] environment, representing applying a left or right force to the cart
+/// Actions for the [`MountainCar`] environment
+/// 0 = push left, 1 = no push, 2 = push right
 #[derive(FromRepr, EnumIter, VariantArray, Clone, Copy, Debug)]
-pub enum CPAction {
-    Left = 0,
-    Right = 1,
+pub enum MCAction {
+    PushLeft = 0,
+    NoPush = 1,
+    PushRight = 2,
 }
 
-impl From<usize> for CPAction {
+impl From<usize> for MCAction {
     fn from(value: usize) -> Self {
-        Self::from_repr(value).expect("CPAction::from is only called with valid values [0, 1]")
+        Self::from_repr(value).expect("MCAction::from is only called with valid values [0, 1, 2]")
     }
 }
 
-impl<B: Backend> ToTensor<B, 2, Int> for Vec<CPAction> {
+impl<B: Backend> ToTensor<B, 2, Int> for Vec<MCAction> {
     fn to_tensor(self, device: &B::Device) -> Tensor<B, 2, Int> {
         let len = self.len();
         let data = TensorData::new(
@@ -42,30 +44,30 @@ impl<B: Backend> ToTensor<B, 2, Int> for Vec<CPAction> {
     }
 }
 
-/// The classic CartPole reinforcement learning environment
+/// The classic Mountain Car reinforcement learning environment with discrete actions
 ///
 /// This implementation is a thin wrapper around [gym_rs](https://github.com/MathisWellmann/gym-rs)
 #[derive(Debug, Clone)]
-pub struct CartPole {
-    gym_env: CartPoleEnv,
+pub struct MountainCar {
+    gym_env: MountainCarEnv,
     pub report: Report,
 }
 
-impl CartPole {
+impl MountainCar {
     pub fn new(render_mode: RenderMode) -> Self {
         Self {
-            gym_env: CartPoleEnv::new(render_mode),
+            gym_env: MountainCarEnv::new(render_mode),
             report: Report::new(vec!["reward"]),
         }
     }
 }
 
-impl Environment for CartPole {
-    type State = [f32; 4];
-    type Action = CPAction;
+impl Environment for MountainCar {
+    type State = [f32; 2];  // [position, velocity]
+    type Action = MCAction;
 
     fn random_action(&self) -> Self::Action {
-        CPAction::iter().choose(&mut thread_rng()).unwrap()
+        MCAction::iter().choose(&mut thread_rng()).unwrap()
     }
 
     fn step(&mut self, action: Self::Action) -> (Option<Self::State>, f32) {
@@ -96,20 +98,8 @@ impl Environment for CartPole {
     }
 }
 
-impl DiscreteActionSpace for CartPole {
+impl DiscreteActionSpace for MountainCar {
     fn actions(&self) -> Vec<Self::Action> {
-        CPAction::VARIANTS.to_vec()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn obs2arr_functional() {
-        let obs = CartPoleObservation::new(0.0.into(), 1.0.into(), 2.0.into(), 3.0.into());
-        let arr = obs2arr(obs);
-        assert_eq!(arr, [0.0, 1.0, 2.0, 3.0], "obs2arr conversion works");
+        MCAction::VARIANTS.to_vec()
     }
 }

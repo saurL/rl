@@ -42,6 +42,8 @@ pub struct Pendulum {
     steps: usize,
     max_steps: usize,
     pub report: Report,
+    reward_scale: f32,
+
 }
 
 impl Pendulum {
@@ -56,6 +58,7 @@ impl Pendulum {
             steps: 0,
             max_steps,
             report: Report::new(vec!["reward"]),
+            reward_scale: 16.5,  
         }
     }
 
@@ -88,6 +91,7 @@ impl Environment for Pendulum {
         let reward = -(self.theta.powi(2)
             + 0.1 * self.theta_dot.powi(2)
             + 0.001 * torque.powi(2));
+        let normalized_reward = reward / self.reward_scale;
 
         self.steps += 1;
         self.report
@@ -100,7 +104,7 @@ impl Environment for Pendulum {
             Some(self.get_state())
         };
 
-        (next_state, reward)
+        (next_state, normalized_reward)
     }
 
     fn reset(&mut self) -> Self::State {
@@ -118,6 +122,10 @@ impl Environment for Pendulum {
 
     fn is_active(&self) -> bool {
         self.steps < self.max_steps
+    }
+
+    fn current_state(&self) -> Self::State {
+        self.get_state()
     }
 }
 

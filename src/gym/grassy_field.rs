@@ -190,6 +190,12 @@ impl<const S: usize> Environment for GrassyField<S> {
 
         self.report.entry("reward").and_modify(|x| *x += reward);
         (next_state, reward as f32)
+
+        
+    }
+
+        fn current_state(&self) -> Self::State {
+        self.get_state()
     }
 }
 

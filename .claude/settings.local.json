@@ -2,7 +2,15 @@
   "permissions": {
     "allow": [
       "Bash(cargo build:*)",
-      "Bash(cargo test:*)"
+      "Bash(cargo test:*)",
+      "Bash(cargo check:*)",
+      "Bash(export LIBRARY_PATH=\"/opt/homebrew/lib\")",
+      "Bash(export DYLD_LIBRARY_PATH=\"/opt/homebrew/lib\")",
+      "Bash(export CPATH=\"/opt/homebrew/include\")",
+      "Bash(cargo run:*)",
+      "Bash(cat:*)",
+      "Bash(ls:*)",
+      "Bash(grep:*)"
     ]
   }
 }

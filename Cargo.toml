@@ -13,11 +13,13 @@ rust-version = "1.79"
 gym = ["dep:gym-rs", "dep:strum"]
 viz = ["dep:ratatui", "dep:crossterm", "dep:tui-logger", "dep:unicode-width"]
 
+
 [dependencies]
 
 burn = { version = "0.19.1", features = ["autodiff"] }
 crossterm = { version = "0.27.0", optional = true }
-gym-rs = {  git = "https://github.com/MathisWellmann/gym-rs.git", optional = true,features = ["bundled"] }
+dhat = { version = "0.3", optional = true }
+gym-rs = {  git = "https://github.com/MathisWellmann/gym-rs.git", optional = true,default-features = false }
 log = { version = "0.4.21", features = ["std"] }
 rand = { version = "0.8.5", features = ["alloc"] }
 rand_distr = "0.4.3"
@@ -60,3 +62,18 @@ name = "sarsa_windy_gridworld"
 name = "sac_pendulum"
 required-features = ["gym"]
 path = "examples/sac_pendulum/main.rs"
+
+[[example]]
+name = "td3_pendulum"
+required-features = ["gym"]
+path = "examples/td3_pendulum/main.rs"
+
+[[example]]
+name = "a2c_cartpole"
+required-features = ["gym"]
+path = "examples/a2c_cartpole/main.rs"
+
+[[example]]
+name = "ppo_cartpole"
+required-features = ["gym"]
+path = "examples/ppo_cartpole/main.rs"

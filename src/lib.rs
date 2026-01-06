@@ -19,6 +19,9 @@ pub mod memory;
 /// Library traits
 pub mod traits;
 
+/// Neural network building blocks
+pub mod nn;
+
 /// Probabilistic models
 mod prob;
 
